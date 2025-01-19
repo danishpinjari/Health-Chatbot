@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Mental Health Support Chatbot</title>
+    <link rel="stylesheet" href="/static/health.css">
+
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header">
+            <h1>Mental Health Support Chatbot</h1>
+            <p>Your personalized mental health assistant</p>
+        </div>
+        <div class="chat-box" id="chat-box">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="How are you feeling today?" />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+        <div class="message-suggestion" id="message-suggestion">
+            <!-- Suggestions for emotional health or exercises -->
+        </div>
+        <div class="resource-links" id="resource-links">
+            <!-- Links to articles and mindfulness resources -->
+        </div>
+    </div>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value;
+            if (userInput.trim() === '') return;
+
+            // Display user message in chat box
+            const chatBox = document.getElementById('chat-box');
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'user-message';
+            userMessageDiv.textContent = userInput;
+            chatBox.appendChild(userMessageDiv);
+
+            // Clear input field
+            document.getElementById('user-input').value = '';
+
+            // Send message to server
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: userInput })
+                });
+                const data = await response.json();
+                const chatbotResponse = data.response;
+
+                // Display chatbot response in chat box
+                const chatbotMessageDiv = document.createElement('div');
+                chatbotMessageDiv.className = 'chatbot-message';
+                chatbotMessageDiv.innerHTML = chatbotResponse.replace(/\n/g, '<br>');
+                chatBox.appendChild(chatbotMessageDiv);
+
+                // Display suggested resources and mindfulness exercises
+                displaySuggestedResources(chatbotResponse);
+
+                // Scroll chat box to the bottom
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displaySuggestedResources(response) {
+            const messageSuggestion = document.getElementById('message-suggestion');
+            const resourceLinks = document.getElementById('resource-links');
+
+            // Based on the chatbot response, suggest mindfulness exercises or resources
+            if (response.includes('stress')) {
+                messageSuggestion.textContent = 'It seems like you might be feeling stressed. Try taking a deep breath and follow a simple breathing exercise.';
+                resourceLinks.innerHTML = '<a href="https://www.headspace.com">Headspace</a><a href="https://www.meditation.com">Meditation.com</a>';
+            } else if (response.includes('sad')) {
+                messageSuggestion.textContent = 'It seems like you might be feeling down. Consider a short walk or speaking with a friend.';
+                resourceLinks.innerHTML = '<a href="https://www.psychologytoday.com">Psychology Today</a><a href="https://www.betterhelp.com">BetterHelp</a>';
+            } else {
+                messageSuggestion.textContent = 'It sounds like you’re doing well. Keep it up!';
+                resourceLinks.innerHTML = '';
+            }
+        }
+    </script>
+</body>
+</html>
